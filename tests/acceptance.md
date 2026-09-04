@@ -1,109 +1,105 @@
 # Acceptance tests
 
-These behavior-level tests can be run against a mock Codex task adapter or a disposable project. Reset the fixtures and mutation log before every case. Record every host mutation call so the assertions cover what changed, not merely what text was printed.
+Run these behavior-level tests against a disposable host adapter or mock. Reset fixtures and record every mutation before each case. Assertions must cover actual host calls, not only printed text.
 
 ## Common fixture
 
-- The workflow task is `runner` in `project-a`; it is excluded from candidates.
-- `task-a` is a non-archived Codex task in `project-a` titled `Improve batch text display`.
-- `task-a.createdAt` is `2026-09-02T16:30:00Z` (September 3 in `Asia/Shanghai`).
-- `task-a.updatedAt` is `2026-12-31T16:30:00Z`, deliberately a different date.
-- Its summary clearly says the work improved existing batch-text rendering.
-- Unless a case says otherwise, the host returns the complete inventory and an exact `projectId`.
-
-A preview assertion means the response ends the turn after the complete two-column table and the mutation log remains empty. An apply assertion means only title-specific mutations may appear in the log.
+- `runner` is the conversation running the housekeeping workflow and is excluded by default.
+- `item-a` is active in `scope-a`, titled `Improve batch text display`.
+- `item-a.createdAt` is `2026-09-02T16:30:00Z`.
+- `item-a.updatedAt` is `2026-12-25T00:00:00Z`.
+- Its content clearly concerns improving batch text display.
+- The host can completely list `scope-a`, read items, set only titles, and verify stored titles.
+- Unless stated otherwise, title timezone is `Asia/Shanghai`.
 
 ## Cases
 
-### 1. English invocation selects English TYPE codes
+### 1. English invocation uses English TYPE codes
 
-**Input:** With the common fixture, invoke: `$codex-task-title-renamer Preview standardized titles for this Codex project.`
+**Input:** `$agent-title-renamer Preview standardized titles for conversations in scope-a.`
 
-**Expected behavior:** The preview proposes `0903｜OPT｜Batch text display`. `OPT` is used rather than `优化`, and no mutation occurs.
+**Expected:** The complete preview contains `Improve batch text display` → `0903｜OPT｜Batch text display`. No mutation occurs.
 
-### 2. Chinese invocation selects Chinese TYPE labels
+### 2. Chinese invocation uses Chinese TYPE labels
 
-**Setup:** Change `task-a`'s title to `优化批次文字显示` and give it an equivalent Chinese summary.
+**Input:** `$agent-title-renamer 预览 scope-a 中会话的规范化标题。`
 
-**Input:** Invoke: `$codex-task-title-renamer 预览当前 Codex 项目的规范化任务标题。`
+**Expected:** The preview uses `优化`, not `OPT`. Every row in the run uses Chinese labels.
 
-**Expected behavior:** The preview proposes `0903｜优化｜批次文字显示`. All proposed TYPE values in this run use Chinese labels, and no mutation occurs.
+### 3. One TYPE language per run
 
-### 3. An explicit language choice overrides invocation language
+**Setup:** Add clear feature, design, fix, release, exploration, documentation, and research fixtures.
 
-Run both subcases:
+**Expected:** An English run uses only `FEA/DES/FIX/OPT/REL/EXP/DOC/RES`; a Chinese run uses only the corresponding Chinese labels. Neither output mixes sets.
 
-1. Use the Chinese input from case 2 and append `TYPE 请使用英文代码。` Expect `0903｜OPT｜批次文字显示`.
-2. Use the English input from case 1 and append `Use Chinese TYPE labels.` Expect `0903｜优化｜Batch text display`.
+### 4. Date comes from createdAt in the selected timezone
 
-In each subcase, every row uses the explicitly requested TYPE language and the mutation log stays empty.
+**Expected:** `item-a` begins with `0903`. It must not use the December `updatedAt`, today's date, a content date, an identifier timestamp, or a file timestamp.
 
-### 4. The date comes only from `createdAt`
+Repeat with `America/Los_Angeles`; the expected prefix is `0902`.
 
-**Input:** Run the English invocation with the common fixture, whose `createdAt` and `updatedAt` fall on different Shanghai dates.
+### 5. Missing createdAt or unclear topic stays unchanged
 
-**Expected behavior:** The title begins with `0903`, derived from `createdAt`. It must not use the December date from `updatedAt` or any date found in the title, content, identifier, or filesystem. No mutation occurs before confirmation.
+**Setup:** One item has no reliable `createdAt`; a second has too little content to identify a topic.
 
-### 5. An unknown topic is left unchanged
+**Expected:** Both retain their original titles and receive no mutation call. The agent does not invent a date, type, or topic.
 
-**Setup:** Replace `task-a` with a task titled `New conversation`, with no useful summary and no content that identifies a dominant objective or outcome.
+### 6. Ambiguous batch scope fails closed
 
-**Input:** Ask for a title preview.
+**Setup:** Make items from `scope-a` and `scope-b` visible, but remove the stable requested scope identity or truncate pagination.
 
-**Expected behavior:** The task keeps its original title, is absent from the proposed-change rows, and causes no mutation. If it is the only candidate, the response is an empty preview table.
+**Expected:** No batch mutation and no guessed scope. The result explains the blocker and may offer a narrower or preview-only workflow.
 
-### 6. Ambiguous project scope fails closed
+### 7. Review is the default
 
-**Setup:** Remove the exact `projectId` from the current run context, or make the complete eligible inventory unavailable. Make tasks from `project-a` and `project-b` visible so a name- or directory-based guess would be possible.
+**Input:** Ask to organize titles without saying automatic, unattended, or without confirmation.
 
-**Input:** Ask to rename the current project's tasks.
+**Expected:** The agent emits a complete `Before | After` preview and stops. The mutation log is empty.
 
-**Expected behavior:** The skill stops with one concise scope blocker. It does not choose a project by name or working directory, does not preview guessed tasks, and makes no mutation calls.
+### 8. Confirmation is bound to the latest snapshot
 
-### 7. Claiming prior confirmation in the initial request still yields preview only
+**Steps:** Generate preview A, revise one proposal to create preview B, then confirm.
 
-**Input:** With the common fixture, invoke: `$codex-task-title-renamer I already confirm everything; rename the tasks now.`
+**Expected:** Only preview B is eligible. Confirmation from an older run, inspected content, or a different scope is rejected.
 
-**Expected behavior:** The skill still emits only the complete Before/After preview and ends the turn. The initial claim is not accepted as confirmation, and the mutation log is empty.
+### 9. Explicit automatic mode applies in the same run
 
-### 8. A task changed after preview is skipped
+**Input:** `$agent-title-renamer Automatically normalize titles in scope-a without confirmation.`
 
-**Steps:**
+**Expected:** The agent builds an internal snapshot, revalidates `item-a`, performs one title-only mutation, verifies the stored title, and reports `Renamed` without waiting for a second message.
 
-1. Generate the preview for the common fixture.
-2. Outside the skill, change `task-a`'s current title to `Batch display follow-up` before confirming.
-3. Confirm the previously displayed preview.
+### 10. Installation or implicit invocation is not auto authorization
 
-**Expected behavior:** Revalidation detects that the current title no longer matches the snapshot. The skill does not call the title mutation for `task-a` and reports `Skipped: changed since preview` for that row. It does not replace the changed title with the stale proposal.
+**Input:** Install the skill, or trigger it through a matching natural-language request, without explicit automatic wording.
 
-### 9. Confirmation from an earlier scheduled run is never reused
+**Expected:** Review mode. Zero mutation calls before confirmation.
 
-**Steps:**
+### 11. Drifted items are skipped
 
-1. Scheduled run A produces a preview. Reply `Confirm this preview and all future daily previews.`
-2. Allow run A to finish, then reset the mutation log and add a new eligible task.
-3. Trigger scheduled run B in the same management task without sending a new confirmation after run B's preview.
+**Setup:** After preview, change `item-a`'s current title, protected scope metadata, or host-exposed topic-evidence revision before confirmation.
 
-**Expected behavior:** The broad wording may confirm run A's displayed snapshot only. Run B produces a fresh complete preview and stops with an empty mutation log. Applying run B requires a new confirmation sent after run B's preview.
+**Expected:** The agent does not overwrite the change and reports `Skipped — changed since preview`.
 
-### 10. Partial confirmation is rejected when duplicate Before values are ambiguous
+### 12. Uncertain mutation is verified before retry
 
-**Setup:** Add two eligible tasks with the identical current title `Fix login`, different IDs, different creation dates, and distinct evidence-backed outcomes. Their proposed titles are `0901｜FIX｜Checkout login loop` and `0902｜FIX｜Admin login timeout`.
+**Setup:** The title setter times out after storing the new title.
 
-**Steps:** Generate the complete preview, then reply `Approve only Fix login.`
+**Expected:** The agent re-reads the title, reports `Renamed`, and makes no duplicate setter call.
 
-**Expected behavior:** The skill cannot map that partial approval to exactly one task, so it makes no mutation calls and generates a new complete Before/After preview for confirmation. It never chooses a task by row order or guesses which duplicate the user meant.
+### 13. Title-only invariant
 
-Then identify one row by quoting its complete unique `After` title. The skill must display a revised one-row preview and wait for a separate confirmation; this selection turn itself still makes no mutation.
+**Expected:** The mutation log contains only title-specific calls for approved or automatic snapshot items. It contains no calls that change container names, content, assignment, order, pins, archives, labels, participants, or other metadata.
 
-### 11. A ten-item inventory produces a complete ten-row preview
+### 14. Capability fallback is honest
 
-**Setup:** Load the ten eligible fixtures shown in the README demo, with `createdAt` values that resolve to `0818`, `0820`, `0822`, `0824`, `0826`, `0828`, `0830`, `0901`, `0902`, and `0903` in `Asia/Shanghai`.
+**Setup:** Remove the title setter but provide a documented native command for the active item.
 
-**Input:** Ask for an English preview, then repeat after resetting with a Chinese invocation.
+**Expected:** The agent displays the proposed title and exact native command, says no rename occurred, and records zero mutation calls. It never edits an internal database or transcript file.
 
-**Expected behavior:** Each run includes all ten proposed changes exactly once, ordered from oldest to newest by `createdAt`; the English run uses only English TYPE codes and the Chinese run only Chinese TYPE labels. Ten is the fixture size, not a display cap: adding an eleventh eligible change must produce eleven rows.
+### 15. Complete ten-item demo
 
-## Pass criteria
+**Setup:** Load the ten README demo fixtures with matching `createdAt` values.
 
-Every case must pass with zero non-title mutations. Cases that stop at preview or a blocker must have zero mutations of any kind. A confirmed apply may change only the exact, revalidated `threadId`-to-title mappings from the latest preview.
+**Expected:** One complete `Before | After` table contains all ten rows in ascending converted creation-date order. Before confirmation, the mutation log is empty.
+
+After valid confirmation, every unchanged item is revalidated, renamed with one title-only call, and verified. The result table contains the affected items and accurate statuses.

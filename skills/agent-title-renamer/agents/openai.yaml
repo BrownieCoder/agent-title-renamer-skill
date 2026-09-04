@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent Title Renamer Skill"
+  short_description: "Preview and safely standardize AI conversation titles"
+  default_prompt: "Use $agent-title-renamer to preview standardized titles for conversations in the current scope. Never rename a project or workspace."
+
+policy:
+  allow_implicit_invocation: true
