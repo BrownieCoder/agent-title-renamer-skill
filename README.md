@@ -1,19 +1,22 @@
-# Agent Title Renamer Skill
+# Agent Title Renamer — Codex & Claude Code Skill
 
 **English (default)** | [简体中文](README.zh-CN.md)
 
 [![Agent Skills](https://img.shields.io/badge/standard-Agent%20Skills-6C5CE7)](https://agentskills.io)
 [![Codex](https://img.shields.io/badge/Codex-full%20workflow-111111)](https://openai.com/codex/)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-batch%20Beta-D97757)](skills/agent-title-renamer/references/claude-code-adapter.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2EA44F.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/BrownieCoder/agent-title-renamer-skill?style=flat&logo=github&label=Stars)](https://github.com/BrownieCoder/agent-title-renamer-skill/stargazers)
 
-Turn messy AI-agent histories into short, factual, searchable titles.
+Batch-preview and safely rename messy Codex tasks and local Claude Code sessions.
 
-One portable naming policy for Codex, Claude Code, and other Agent Skills-compatible tools—with a preview-first workflow and one hard boundary: **conversation titles may change; project and workspace names never do.**
+`MMDD｜TYPE｜Topic` · Preview first · Revalidate before write · Never rename projects
 
-> The skill instructions are portable. Automatic history access and renaming depend on the tools exposed by each host. See [Compatibility](#compatibility) for the exact support level.
+One portable naming policy for Codex, Claude Code, and other Agent Skills-compatible tools, now with an optional official-SDK bridge for Claude Code local history.
 
-[See the 10-title demo](#see-the-difference) · [Install](#install) · [Compatibility](#compatibility) · [Automation](docs/automation.md)
+> Automatic history access still depends on each host. The Claude adapter covers locally persisted Claude Code sessions—not Claude.ai, web, mobile, or another computer's history. See [Compatibility](#compatibility).
+
+[See the 10-title demo](#see-the-difference) · [Quick install](#install) · [Claude batch adapter](#claude-code-batch-adapter-beta) · [Automation](docs/automation.md)
 
 ## See the difference
 
@@ -52,6 +55,27 @@ Prefer Chinese labels? Invoke the skill in Chinese:
 
 Each run uses one TYPE language. It never mixes `OPT` and `优化` in the same preview.
 
+## Claude Code batch adapter (Beta)
+
+This release includes a working bridge to Anthropic's documented Python Agent SDK. The skill decides the title; the adapter handles only session access and guarded mutation.
+
+| Stage | What happens |
+| --- | --- |
+| Inventory | `list_sessions` resolves one exact project directory. Cross-project discovery stays read-only. |
+| Evidence | `get_session_messages` supplies bounded human text and a complete evidence fingerprint. |
+| Preview | Zero rename calls. The adapter validates `created_at`, TYPE language, and scope, then seals a private plan with a SHA-256 digest. |
+| Apply | The digest, metadata, current title, and message evidence are rechecked before `rename_session`; an exact-directory re-read verifies `custom_title`. |
+
+The adapter never parses or edits Claude's internal JSONL files. The active housekeeping session is excluded automatically when Claude exposes `CLAUDE_CODE_SESSION_ID`. While the upstream metadata window remains limited, mutation also fails closed for sessions larger than 128 KiB.
+
+```text
+Preview generated → 10 proposed titles → 0 writes
+Reply `Confirm` → revalidate the sealed preview → rename → verify
+Any drift detected → skip that session
+```
+
+See the [Claude adapter guide](skills/agent-title-renamer/references/claude-code-adapter.md) for commands and the Beta boundary.
+
 ## Why it is useful
 
 - **Find old work faster.** Dates, intent, and topic are visible in the sidebar.
@@ -64,13 +88,13 @@ Each run uses one TYPE language. It never mixes `OPT` and `优化` in the same p
 
 The Agent Skills standard defines how instructions are packaged. It does not define a universal conversation API.
 
-| Host | What works in this release |
-| --- | --- |
-| Codex with task-management tools | Full batch workflow: list, inspect, preview, rename, and verify. |
-| Claude Code, skill only | Naming policy and preview generation. For the active session, use the proposed title with Claude Code's native `/rename`; full-history batch mutation is not claimed. |
-| Other Agent Skills clients | The naming policy is portable. Preview and apply capabilities adapt to the host's documented title tools. |
-
-This repository does not currently bundle and test a Claude Agent SDK adapter, so it does not support automatic Claude-wide batch renaming.
+| Host / setup | List and read | Batch rename | Coverage |
+| --- | --- | --- | --- |
+| Codex with task-management tools | Yes | Yes | Accessible Codex tasks in the exact requested scope. |
+| Claude Code + bundled SDK adapter | SDK-visible sessions | Selected IDs, **Beta** | One exact project directory per run; cross-project/worktree discovery is read-only, and oversized sessions fail closed. |
+| Claude Code, skill only | Active session | Native `/rename` only | Current session; no history-wide claim. |
+| Claude.ai, web, mobile, or another computer | No | No | These histories are not accessed by the local adapter. |
+| Other Agent Skills clients | Host-dependent | Host-dependent | Naming policy is portable; mutations require documented host title tools. |
 
 ## Install
 
@@ -100,10 +124,21 @@ Clone the repository, then copy `skills/agent-title-renamer` to either:
 Invoke it with:
 
 ```text
-/agent-title-renamer Preview a standardized title for this session.
+/agent-title-renamer Preview standardized titles for local sessions in this project.
 ```
 
-Claude Code can rename the active session with `/rename <title>`. The skill will not directly edit Claude's internal JSONL files.
+For guarded batch access to local session history, set up the optional SDK dependency inside the installed skill directory:
+
+```bash
+cd ~/.claude/skills/agent-title-renamer
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-claude.txt
+.venv/bin/python scripts/claude_adapter.py doctor
+```
+
+On Windows, replace `.venv/bin/python` with `.venv\Scripts\python.exe`. The dependency is never installed automatically.
+
+With the adapter available, the skill can preview and safely batch-rename selected, SDK-visible local Claude Code sessions within its Beta limits. Without it, the skill falls back to suggestions and Claude Code's native `/rename <title>` for the active session. It never directly edits internal JSONL files.
 
 If the host does not expose a reliable session creation timestamp, the skill will not invent the `MMDD` prefix; it will keep the title unchanged or provide undated naming guidance only.
 

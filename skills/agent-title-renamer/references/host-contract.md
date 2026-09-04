@@ -51,9 +51,18 @@ Use when title mutation is missing or when the host cannot provide reliable `cre
 | item | task or thread | session |
 | scope | project or projectless list | project directory |
 | item ID | thread ID | session ID |
-| title mutation | native task-title setter | `/rename` for the active session, or an SDK adapter |
+| title mutation | native task-title setter | `/rename` for the active session, or `rename_session` through the bundled SDK adapter |
 
-Claude Code's interactive `/rename` is a user-facing command for the current session, not a universal batch API. A future adapter may use the documented Claude Agent SDK; it must not parse or modify Claude's internal JSONL transcript format.
+Claude Code's interactive `/rename` is a user-facing command for the current session, not a universal batch API. The bundled Beta adapter maps a guarded, explicitly selected-ID workflow to the documented Python Agent SDK:
+
+```text
+listItems      -> list_sessions with one exact directory and no worktree expansion
+readItem       -> exact list_sessions re-read + get_session_messages
+setTitle       -> rename_session
+verify         -> exact list_sessions re-read and custom_title comparison
+```
+
+The SDK can omit or deduplicate records before returning them, so this mapping does not prove a complete physical project inventory and must not be presented as one. It covers selected, SDK-visible, locally persisted Claude Code sessions only. It does not provide access to Claude.ai, web, mobile, or another computer's history. The adapter must never parse or modify Claude's internal JSONL transcript format directly.
 
 ## Fail-closed rules
 

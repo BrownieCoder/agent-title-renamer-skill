@@ -103,3 +103,13 @@ Repeat with `America/Los_Angeles`; the expected prefix is `0902`.
 **Expected:** One complete `Before | After` table contains all ten rows in ascending converted creation-date order. Before confirmation, the mutation log is empty.
 
 After valid confirmation, every unchanged item is revalidated, renamed with one title-only call, and verified. The result table contains the affected items and accurate statuses.
+
+## Executable Claude adapter coverage
+
+Run the mock-backed suite without touching real Claude history:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+The suite verifies zero-write previews, inspection-bound proposals, `created_at` date enforcement, single-language TYPE validation, selected-ID directory scoping, oversized-session refusal, sealed-plan permissions and digests, default current-session exclusion, metadata and message drift skips, automatic-mode double authorization, one title-only call per success, and verification after an uncertain write.

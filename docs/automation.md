@@ -68,9 +68,11 @@ After creation, verify:
 
 ## Claude Code
 
-Claude Code can load this skill and generate standardized title proposals. Its native `/rename` command renames the active session. A plain skill installation does not provide automatic full-history batch mutation.
+Claude Code can load this skill and generate standardized title proposals. With the optional bundled Python SDK adapter configured, it can also list, revalidate, rename, and verify locally persisted sessions in one exact project directory per run. Cross-project and cross-worktree SDK inventories are read-only discovery, so create separate exact-directory runs instead of one broad mutation plan. Without the adapter, its native `/rename` command remains the current-session fallback.
 
-Claude routines or an external scheduler may replay a prompt, but the current release should be treated as preview or current-session guidance unless a documented title-management adapter is installed. Do not automate by editing Claude's internal JSONL files.
+Claude routines or an external scheduler may replay the saved prompt. Installing the skill or adapter does not create a schedule. For unattended runs, the saved prompt must explicitly authorize automatic mode; the adapter then requires both an automatic sealed plan and the matching apply flag. Prefer completed sessions while the Claude batch bridge is Beta.
+
+This covers local Claude Code history only. It does not reach Claude.ai, web, mobile, another computer, or cloud history that is not persisted locally. Do not automate by editing Claude's internal JSONL files.
 
 ## Other Agent Skills hosts
 
