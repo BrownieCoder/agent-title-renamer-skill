@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Task Title Renamer"
+  short_description: "Preview and safely rename Codex task titles"
+  default_prompt: "Use $codex-task-title-renamer to preview safe, standardized titles for tasks in the current Codex project."
+
+policy:
+  allow_implicit_invocation: true
