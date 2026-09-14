@@ -16,13 +16,13 @@ One portable naming policy for Codex, Claude Code, and other Agent Skills-compat
 
 > Automatic history access still depends on each host. The Claude adapter covers locally persisted Claude Code sessions—not Claude.ai, web, mobile, or another computer's history. See [Compatibility](#compatibility).
 
-[See the 10-title demo](#see-the-difference) · [Quick install](#install) · [Claude batch adapter](#claude-code-batch-adapter-beta) · [Automation](docs/automation.md)
+[See the 10-title example](#example) · [Quick install](#install) · [Claude batch adapter](#claude-code-batch-adapter-beta) · [Automation](docs/automation.md)
 
-## See the difference
+## Example
 
 Default format: `MMDD｜TYPE｜Topic`
 
-Here is a complete ten-item preview. Nothing has been renamed yet.
+Here is a complete ten-item preview.
 
 | Before | After |
 | --- | --- |
@@ -37,7 +37,7 @@ Here is a complete ten-item preview. Nothing has been renamed yet.
 | Fix timeout login redirect | 0902｜FIX｜Login redirect |
 | Improve batch text display | 0903｜OPT｜Batch text display |
 
-If the preview is correct, reply with an explicit confirmation in the same conversation—for example, `Confirm`. The agent rechecks that exact snapshot, changes titles only, and verifies each result.
+If everything looks right, reply `Confirm` in the same conversation.
 
 | Before | After | Result |
 | --- | --- | --- |
