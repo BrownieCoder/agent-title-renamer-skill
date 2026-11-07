@@ -36,9 +36,13 @@ updatedAt
 
 `updatedAt` may be checked for drift but must never supply the `MMDD` date.
 
+For a legacy item with null container metadata, a host with a complete accessible-container inventory may resolve a logical scope from documented assignment records or concrete conversation evidence tied to exactly one container. Retain the raw null value, resolved identity, and evidence, and revalidate all three before writing. Similar names and working directories alone cannot establish ownership. Skip items that remain ambiguous; never repair membership. This exception does not loosen the Claude adapter's required exact directory and selected-ID scope, and does not permit private-storage access.
+
 ### Current-item workflow
 
 Use when the host can expose metadata and content for only the active conversation. Never imply that other history was inspected.
+
+Explicitly authorized first-turn naming uses this tier and includes only the current user-owned item, not internal subagent sessions. Missing creation metadata or mutation/verification capability leaves its title unchanged and must not block unrelated user work. Installation alone does not authorize first-turn mutation.
 
 ### Preview-only workflow
 

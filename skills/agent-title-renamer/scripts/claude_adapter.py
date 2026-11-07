@@ -29,9 +29,11 @@ ADAPTER_VERSION = "0.1.0-beta"
 MINIMUM_SDK_VERSION = "0.1.74"
 MAXIMUM_SDK_VERSION_EXCLUSIVE = "0.3.0"
 MAX_SAFE_SESSION_BYTES = 2 * 65_536
-ENGLISH_TYPES = frozenset({"FEA", "DES", "FIX", "OPT", "REL", "EXP", "DOC", "RES"})
+ENGLISH_TYPES = frozenset(
+    {"FEA", "DES", "FIX", "OPT", "REL", "EXP", "DOC", "RES", "REV", "TST", "CFG"}
+)
 CHINESE_TYPES = frozenset(
-    {"功能", "设计", "修复", "优化", "发布", "探索", "文档", "研究"}
+    {"功能", "设计", "修复", "优化", "发布", "探索", "文档", "研究", "评审", "测试", "配置"}
 )
 TITLE_PATTERN = re.compile(r"^([0-9]{4})｜([^｜]+)｜([^｜]+)$")
 SHA256_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")

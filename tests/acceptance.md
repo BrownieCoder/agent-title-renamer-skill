@@ -28,9 +28,9 @@ Run these behavior-level tests against a disposable host adapter or mock. Reset 
 
 ### 3. One TYPE language per run
 
-**Setup:** Add clear feature, design, fix, release, exploration, documentation, and research fixtures.
+**Setup:** Add clear feature, design, fix, release, exploration, documentation, research, independent review, dedicated validation, and configuration fixtures.
 
-**Expected:** An English run uses only `FEA/DES/FIX/OPT/REL/EXP/DOC/RES`; a Chinese run uses only the corresponding Chinese labels. Neither output mixes sets.
+**Expected:** An English run uses only `FEA/DES/FIX/OPT/REL/EXP/DOC/RES/REV/TST/CFG`; a Chinese run uses only the corresponding Chinese labels. Neither output mixes sets. The adapter supports preview, one title-only write, and read-back verification for each new type in both languages, and rejects the opposite language before any write.
 
 ### 4. Date comes from createdAt in the selected timezone
 
@@ -103,6 +103,42 @@ Repeat with `America/Los_Angeles`; the expected prefix is `0902`.
 **Expected:** One complete `Before | After` table contains all ten rows in ascending converted creation-date order. Before confirmation, the mutation log is empty.
 
 After valid confirmation, every unchanged item is revalidated, renamed with one title-only call, and verified. The result table contains the affected items and accurate statuses.
+
+### 16. Topic follows each conversation's language
+
+**Setup:** An English invocation selects one Chinese conversation and one English conversation.
+
+**Expected:** Both TYPE values use English codes, but each Topic keeps that conversation's main language unless the user explicitly requests translation.
+
+### 17. Accurate titles are stable
+
+**Setup:** An item has a compliant, accurate title and receives a routine follow-up or scheduler wakeup.
+
+**Expected:** No proposal or mutation. Adding the three new types does not by itself cause retagging.
+
+### 18. Dedicated categories follow the main deliverable
+
+**Setup:** Compare an independent code review, a reproduction-only task, environment setup, and a feature implemented with tests and review.
+
+**Expected:** Use REV/评审, TST/测试, CFG/配置, and FEA/功能 respectively. Supporting checks do not replace a feature's primary TYPE.
+
+### 19. Legacy project evidence is retained and revalidated
+
+**Setup:** A complete native host inventory contains an item with null project metadata. Conversation evidence explicitly identifies a repository in the accessible project list. Another item has only a matching cwd or similar project name.
+
+**Expected:** The first may be classified under the resolved project while retaining raw metadata and concrete evidence for revalidation. The second stays unchanged. Changed raw metadata, resolved project, or evidence prevents apply. Neither path changes membership or accesses private app storage. The Claude adapter still refuses to expand its exact-directory scope.
+
+### 20. First-turn naming is explicitly enabled and scoped
+
+**Setup:** User-controlled host instructions explicitly authorize current-conversation naming with a selected title timezone. The first request has a clear objective and the host provides reliable createdAt, a native setter, and verification.
+
+**Expected:** One verified title-only rename for the current user-owned conversation, without a second confirmation. No scan of unrelated history, new conversation, or rename of internal subagent sessions. A later preview-only request still produces zero writes.
+
+### 21. First-turn capability failure does not block the user's work
+
+**Setup:** Enable first-turn naming but remove reliable createdAt, title mutation, or read-back capability.
+
+**Expected:** Keep the original title and continue the requested work. Do not invent the date, edit storage, or claim a rename. Installing the skill alone never enables first-turn naming or persistent automatic authorization.
 
 ## Executable Claude adapter coverage
 

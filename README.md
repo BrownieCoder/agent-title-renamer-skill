@@ -10,7 +10,7 @@
 
 Batch-preview and safely rename messy Codex tasks and local Claude Code sessions.
 
-`MMDD｜TYPE｜Topic` · Preview first · Revalidate before write · Never rename projects
+`MMDD｜TYPE｜Topic` · 11 types · Preview first · Revalidate before write · Never rename projects
 
 One portable naming policy for Codex, Claude Code, and other Agent Skills-compatible tools, now with an optional official-SDK bridge for Claude Code local history.
 
@@ -30,12 +30,12 @@ Here is a complete ten-item preview.
 | Speed up search indexing | 0820｜OPT｜Search indexing |
 | Add bulk export | 0822｜FEA｜Bulk export |
 | Document API auth | 0824｜DOC｜API authentication |
-| Explore offline sync | 0826｜EXP｜Offline sync |
 | Prepare v1.2 release | 0828｜REL｜v1.2 release |
 | Research vector database options | 0830｜RES｜Vector database options |
-| Review UI alignment options | 0901｜DES｜UI alignment check |
-| Fix timeout login redirect | 0902｜FIX｜Login redirect |
-| Improve batch text display | 0903｜OPT｜Batch text display |
+| Design UI alignment | 0901｜DES｜UI alignment plan |
+| Review the login patch | 0902｜REV｜Login patch review |
+| Reproduce the upload timeout | 0903｜TST｜Upload timeout reproduction |
+| Set up the local model | 0904｜CFG｜Local model setup |
 
 If everything looks right, reply `Confirm` in the same conversation.
 
@@ -43,7 +43,7 @@ If everything looks right, reply `Confirm` in the same conversation.
 | --- | --- | --- |
 | Fix image upload crash | 0818｜FIX｜Image upload crash | Renamed |
 | Research vector database options | 0830｜RES｜Vector database options | Renamed |
-| Improve batch text display | 0903｜OPT｜Batch text display | Renamed |
+| Set up the local model | 0904｜CFG｜Local model setup | Renamed |
 
 Prefer Chinese labels? Invoke the skill in Chinese:
 
@@ -179,7 +179,10 @@ The skill selects the workflow supported by the host:
 
 - Date comes only from `createdAt`, never `updatedAt`.
 - An explicit title timezone wins. Otherwise the automation timezone, then the host's configured local timezone, is used.
-- Topic describes the actual conversation and does not repeat its project or workspace name.
+- Topic uses the conversation’s main language and describes its actual goal or substantial outcome, without repeating its project or workspace name. TYPE language is chosen once per run.
+- Keep accurate, compliant titles; routine follow-ups do not trigger renaming.
+- Skip sensitive details in sidebar titles.
+- For legacy items with missing project metadata, use concrete repository, artifact, or migration evidence tied to one accessible project. A similar name or working directory alone is insufficient; uncertain items stay unchanged, and project membership is never repaired.
 - Unclear topics keep their original titles. The skill does not guess.
 - Titles stay short enough to scan in a sidebar.
 - Only title-specific mutation is allowed. Content, assignment, order, pin state, and archive state remain untouched.
@@ -187,21 +190,30 @@ The skill selects the workflow supported by the host:
 | Code | Chinese | Meaning |
 | --- | --- | --- |
 | FEA | 功能 | Feature |
-| DES | 设计 | Design |
+| DES | 设计 | Design or implementation plan |
 | FIX | 修复 | Bug fix |
 | OPT | 优化 | Optimization |
 | REL | 发布 | Release |
 | EXP | 探索 | Exploration |
 | DOC | 文档 | Documentation |
 | RES | 研究 | Research |
+| REV | 评审 | Independent review |
+| TST | 测试 | Dedicated validation or reproduction |
+| CFG | 配置 | Environment, installation, or tool setup |
+
+Tests and reviews that accompany implementation keep the feature or fix TYPE. Use `REV` when review itself is the deliverable, `TST` for dedicated verification, and `CFG` for setup.
 
 ## Review or automatic mode
 
 Review mode is the default: preview first, then confirm that exact snapshot.
 
-Automatic mode is opt-in. Say `automatic`, `unattended`, or `without confirmation` in the request or saved automation prompt. The permission applies only to that run and scope; it does not silently become a global preference.
+Automatic mode is opt-in. Say `automatic`, `unattended`, or `without confirmation` in the request or saved automation prompt. Permission follows the scope and duration you explicitly authorize. One automatic run does not enable future runs; a saved automation prompt or an explicitly approved standing rule can authorize its stated recurring scope.
 
 For recurring housekeeping, see the [automation guide](docs/automation.md). It includes review and explicit automatic templates, with a user-selected schedule and timezone.
+
+### Name new conversations from their first turn
+
+If you want new conversations named as work begins, explicitly enable the current-conversation rule in your host instructions. It uses the same 11 types and verified creation date, and changes only the current user-owned title. Installing the skill does not enable it. See the [first-turn setup example](docs/automation.md#name-new-conversations-during-the-first-turn).
 
 ## Design boundary
 

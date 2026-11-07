@@ -276,6 +276,48 @@ class ClaudeAdapterTests(unittest.TestCase):
             sealed_plan(sdk)
         self.assertEqual(sdk.rename_calls, [])
 
+    def test_review_testing_and_configuration_types_preview_apply_and_verify(self):
+        cases = (
+            ("en", "REV", "Review the login patch"),
+            ("en", "TST", "Reproduce the upload timeout"),
+            ("en", "CFG", "Set up the local model"),
+            ("zh", "评审", "评审登录补丁"),
+            ("zh", "测试", "复现上传超时"),
+            ("zh", "配置", "配置本地模型"),
+        )
+        for language, type_label, topic in cases:
+            with self.subTest(language=language, type_label=type_label):
+                sdk = FakeSDK()
+                sdk.messages[0].message = {"role": "user", "content": topic}
+                title = f"0903｜{type_label}｜{topic}"
+                plan = adapter.build_plan(
+                    sdk, scope(), proposal(title, sdk), "Asia/Shanghai", language, "review"
+                )
+                self.assertEqual(sdk.rename_calls, [])
+
+                results = adapter.apply_plan(
+                    sdk, plan, plan["plan_digest"], automatic=False
+                )
+
+                self.assertEqual(results[0]["result"], "Renamed")
+                self.assertEqual(sdk.rename_calls, [(SESSION_ID, title, "/project")])
+                self.assertEqual(sdk.info.custom_title, title)
+
+    def test_new_types_reject_the_other_language_before_any_write(self):
+        cases = (
+            ("en", "评审"), ("en", "测试"), ("en", "配置"),
+            ("zh", "REV"), ("zh", "TST"), ("zh", "CFG"),
+        )
+        for language, type_label in cases:
+            with self.subTest(language=language, type_label=type_label):
+                sdk = FakeSDK()
+                with self.assertRaisesRegex(adapter.AdapterError, "plan language"):
+                    adapter.build_plan(
+                        sdk, scope(), proposal(f"0903｜{type_label}｜Topic", sdk),
+                        "Asia/Shanghai", language, "review"
+                    )
+                self.assertEqual(sdk.rename_calls, [])
+
     def test_apply_revalidates_renames_once_and_verifies(self):
         sdk = FakeSDK()
         plan = sealed_plan(sdk)

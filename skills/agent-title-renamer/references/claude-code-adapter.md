@@ -92,6 +92,8 @@ The command hashes the complete user/assistant text evidence for later drift det
 
 `preview` makes zero rename calls. It first requires the proposal metadata and evidence fingerprint to match the current session, then validates every date against `created_at`, rejects mixed TYPE languages, saves no transcript text, creates the plan with `0600` permissions, and prints the exact `Before | After` table plus its SHA-256 digest. It refuses to overwrite an existing plan file.
 
+The validator accepts all [11 title types](title-format.md), including `REV / 评审`, `TST / 测试`, and `CFG / 配置`. It validates the format and language; the skill still decides the category and Topic from conversation evidence.
+
 ### 5. Apply the exact confirmed snapshot
 
 For a review plan, run this only after the user confirms the complete preview:
